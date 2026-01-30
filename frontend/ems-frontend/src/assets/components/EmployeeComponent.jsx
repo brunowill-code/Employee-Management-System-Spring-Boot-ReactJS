@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { createEmployee } from '../../services/EmployeeService'
+import React, { useEffect, useState } from 'react'
+import { createEmployee, getEmployee, updateEmployee } from '../../services/EmployeeService'
 import { useNavigate , useParams } from 'react-router-dom'
 
 const EmployeeComponent = () => {
@@ -16,6 +16,20 @@ const EmployeeComponent = () => {
     email: '',
   })
 
+  useEffect(() =>{
+
+    if(id){
+      getEmployee(id).then((response) => {
+        setFirstName(response.data.firstName)
+        setLastName(response.data.lastName)
+        setEmail(response.data.email)
+      }).catch(error =>{
+        console.error(error); 
+      })
+    }
+
+  }, [id]);
+
   const navigator = useNavigate();
 
   const handleFistName = (e) => setFirstName(e.target.value);
@@ -25,17 +39,29 @@ const EmployeeComponent = () => {
   const handleEmail = (e) => setEmail(e.target.value);
   
 
-  function saveEmployee(e){
+  function saveOrUpdateEmployee(e){
     e.preventDefault();
 
     if(validateForm()){
+      
       const employee = {firstName, lastName, email}
       console.log( employee )
-
-      createEmployee(employee).then((response) => {
-        console.log(response.data)
-        navigator('/employees')
+      
+      if(id){
+          updateEmployee(id, employee).then((response)=>{
+            console.log(response.data);
+            navigator('/employees')
+          }).catch(error =>{
+            console.error(error);
+          })
+      } else {
+          createEmployee(employee).then((response) => {
+          console.log(response.data)
+          navigator('/employees')
+      }).catch(error=>{
+          console.error(error);
       })
+      }
     }    
   }
 
@@ -130,7 +156,7 @@ const EmployeeComponent = () => {
               </div>
               
 
-              <button className='btn btn-success' onClick={saveEmployee}>Submit</button>
+              <button className='btn btn-success' onClick={saveOrUpdateEmployee}>Submit</button>
             </form>
           </div>
         </div>
